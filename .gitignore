@@ -1,0 +1,6 @@
+.knit
+*.o
+*.a
+*.elf
+*.bin
+*.list

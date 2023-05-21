@@ -1,0 +1,19 @@
+local knit = require("knit")
+
+local src = knit.join(knit.glob("kernel/*.ha"), knit.glob("kernel/*.s"))
+local rt = knit.glob("rt/*.ha")
+
+return b{
+    $ haplix.elf: kernel.a rt.o
+        riscv64-unknown-elf-ld -Tlink.ld $input -o $output
+    $ kernel.a: $src
+        ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N kernel -c -o $output -t riscv64 kernel
+    $ rt.o: $rt
+        ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N rt -c -o $output -t riscv64 rt
+    $ %.bin: %.elf
+        riscv64-unknown-elf-objcopy $input -O binary $output
+    $ %.list: %.elf
+        riscv64-unknown-elf-objdump -D $input > $output
+    $ qemu:VB: haplix.bin
+        qemu-system-riscv64 -nographic -bios none -machine virt -kernel $input
+}

@@ -1,14 +1,17 @@
 local knit = require("knit")
 
-local src = knit.join(knit.glob("kernel/*.ha"), knit.glob("kernel/*.s"))
-local rt = knit.glob("rt/*.ha")
-
 return b{
-    $ haplix.elf: kernel.a rt.o
+    $ haplix.elf: kernel.a uart.o io.o volatile.a rt.o
         riscv64-unknown-elf-ld -Tlink.ld $input -o $output
-    $ kernel.a: $src
+    $ kernel.a: $(knit.glob("kernel/*"))
         ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N kernel -c -o $output -t riscv64 kernel
-    $ rt.o: $rt
+    $ volatile.a: $(knit.glob("volatile/*"))
+        ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N volatile -c -o $output -t riscv64 volatile
+    $ uart.o: $(knit.glob("dev/uart/*"))
+        ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N dev::uart -c -o $output -t riscv64 dev/uart
+    $ io.o: $(knit.glob("io/*"))
+        ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N io -c -o $output -t riscv64 io
+    $ rt.o: $(knit.glob("rt/*"))
         ASFLAGS='-march=rv64imac -mabi=lp64' hare build -N rt -c -o $output -t riscv64 rt
     $ %.bin: %.elf
         riscv64-unknown-elf-objcopy $input -O binary $output

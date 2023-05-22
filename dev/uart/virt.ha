@@ -13,7 +13,7 @@ export fn virt_new(base: uintptr) virt = {
 	};
 };
 
-const virt_vtable: io::vtable = io::vtable {
+export const virt_vtable: io::vtable = io::vtable {
 	putc = &virt_tx,
 	...
 };
